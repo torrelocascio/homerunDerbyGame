@@ -1,4 +1,6 @@
 //On Load of Window, start the game and show everyting
+var swingEnabled = true
+
 var pitchMeter= {
   x:600,
   y:500,
@@ -36,6 +38,25 @@ var baseball= {
 
   
 }
+var homerunBall= {
+  originX:490,
+  originY:440,
+  x:490,
+  y:440,
+  pseudox:490,
+  pseudoy:440,
+  source: "baseball.png",
+  width:10,
+  height:10,
+  vy:15,
+  vx:0,
+  left: this.x,
+  right: this.x + this.width,
+  top: this.y,
+  bottom: this.y + (this.height)
+
+  
+}
 
 
 var batterView = {
@@ -49,7 +70,7 @@ var batterView = {
   var fieldView={
   x:0,
   y:0,
-  source:"baseballdiamondoverhead.jpg",
+  source:"baseballdiamondoverhead.jpeg",
   height: 600,
   width: 1000
   }
@@ -92,27 +113,40 @@ var batterView = {
     height:150,
     moveRight: function() { this.x = this.x + 50 },
     moveLeft:  function() { this.x = this.x - 50 },
+    originX:220,
+    originY:400,
     
   }
 
   var ang;
 
+  var batCrack = new Audio("homerunsound.mp3")
+  var themeSong = new Audio("kengriffeythemesong.mp3"); // buffers automatically when created
+themeSong.play();
+  var swingMiss = new Audio("swingmiss.mp3")
+  var homerunTravelSound = new Audio("homerunballtravelsound.mp3")
+
 window.onload = function() {
 
  
-  
+  themeSong.play();
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
+
+
   drawObjects();
   draw(bat)
   var img = new Image()
  
+  function crashWith(){
+  if (bat.x+220 < baseball.x + baseball.width  && bat.x + bat.width+30  > baseball.x &&
+		ang<=-315 && ang>-346 &&baseball.y>340+20 && baseball.y<340+150){var swingEnabled=false;
+return true}
 
 
 
 
-
-
+}
 function createPitcherMeter(){ 
   ctx.beginPath();
   ctx.lineWidth="6";
@@ -147,34 +181,41 @@ function fillPitcherMeter(xx, yy, w, h){
 
 
   var outsLeft=10
-  var homeRuns=0
+  var homeruns=0
 
+  function returnObjectsOrigin(){
+    bat.x = bat.originX
+    bat.y = bat.originY
+    batter.x = bat.originX
+    batter.y = bat.originY
+    baseball.x = baseball.originX
+    baseball.y = baseball.originY
+    homerunBall.x = homerunBall.originX;
+    homerunBall.y = homerunBall.originY;
+  }
   //Functions Defined, Start Game
   function drawObjects(){
     draw(batterView);
     draw(baseball);
     draw(batter);
     draw(pitcher);
-    createPitcherMeter()
+    createPitcherMeter();
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.strokeText("Outs: ",30,50);
+    ctx.strokeText("Homeruns: ",30,80);
+
     // draw(bat);
     // musicOn();
   }
 
+  function drawOverviewCanvas(){
+    clearCanvas()
+    draw(fieldView)
+    draw(homerunBall)
+    
+  }
   //Generates Random Velocity in Pixels Per Iteration - 3 options
-  
-
-
-  // document.onkeydown = function(e) {
-  //   if (e.keyCode == 80) {
-  //     pitchBall();}
-  //   }
-  // updateBaseball()
-
-  //   function updateBaseball(){
-  //     draw(baseball)
-  //   }
-  
-  
   function generateRandomPitchVelocity(){
     randomNumber=Math.floor(Math.random()*3)
   if (randomNumber===0){return 4} else if (randomNumber===1){return 4} else {return 4}
@@ -210,12 +251,12 @@ function fillPitcherMeter(xx, yy, w, h){
   // }
 
 
-
+//All Pitcher Animations
+  var pitchAnimationCall
   var pitchPosition=generateRandomPitchPosition()
   var pitchVelocity=generateRandomPitchVelocity()
   function pitchBall() {
-
-    // pitchMeterGo()
+swingEnabled=true;
     if (baseball.y <=batterView.height){
     drawObjects()
     ctx.save();
@@ -226,25 +267,57 @@ function fillPitcherMeter(xx, yy, w, h){
  
     baseball.x = baseball.x + pitchPosition;
     baseball.y =baseball.y + pitchVelocity;
-    window.requestAnimationFrame(pitchBall)
+    
+    // baseball.width = baseball.width+.1;
+    // baseball.height=baseball.height+.1 (makes ball bigger, will mess with collission)
+    pitchAnimationCall= window.requestAnimationFrame(pitchBall)
+    pitchAnimationCall
     
     }
     
-    else {baseball.x=baseball.originX, baseball.y=baseball.originY,clearCanvas;drawObjects;draw(baseball)
-     ;setTimeout(pitchBall,1200)}
+    else {resetPitcher()}
   }
-  setTimeout(pitchBall,1200);
-  // document.onkeydown = function(e) {
-  //   switch (e.keyCode) {
-  //     case 80:
- 
-    //     break;
-    // }
-  // document.body.onkeydown = function(e){
-  //   if(e.keyCode == 80){ window.requestAnimationFrame(pitchBall)
-  
-  //   }
+  setTimeout(pitchBall,2000);
 
+function resetPitcher(){baseball.x=baseball.originX, baseball.y=baseball.originY,clearCanvas;drawObjects;draw(baseball)
+     ;setTimeout(pitchBall,2000);console.log(baseball.y)}
+
+var homerunAnimationCall
+  function homerunAnimation(){
+    if (homerunBall.pseudoy>70){
+    ctx.save()
+    draw(homerunBall);
+    homerunBall.y =homerunBall.y-2;
+    homerunBall.pseudoy=homerunBall.pseudoy-2;
+    // console.log(homerunBall.y)
+    // console.log(homerunBall.pseudoy)
+    homerunBall.width = homerunBall.width + 1;
+    homerunBall.height = homerunBall.height + 1;
+    homerunAnimationCall= window.requestAnimationFrame(homerunAnimation)
+    homerunAnimationCall} 
+    else if (homerunBall.pseudoy<=70) {window.cancelAnimationFrame(homerunAnimationCall);homerunAnimationDown()};
+  }
+
+  var homerunAnimationCallDown
+  function homerunAnimationDown(){if(homerunBall.width>10){
+    ctx.save()
+    draw(homerunBall);
+    homerunBall.y = homerunBall.y-.1;
+    homerunBall.x=homerunBall.x+1.5
+    homerunBall.pseudoy = homerunBall.pseudoy -2
+    // console.log(homerunBall.y);
+    homerunBall.width = homerunBall.width - 1;
+    homerunBall.height = homerunBall.height-1;
+    homerunAnimationCallDown = window.requestAnimationFrame(homerunAnimationDown);
+    homerunAnimationCallDown
+  }
+  else {window.cancelAnimationFrame(homerunAnimationCallDown);   {
+     
+        } 
+      }
+}
+
+//clear Canvas Function
 function clearCanvas(){
   ctx.clearRect(0,0,1500,1500)
 }
@@ -265,31 +338,27 @@ function clearCanvas(){
         var handle = setInterval(function () {
           // ctx.clearRect(bat.x,bat.y, bat.width-100, bat.height-100);
             ctx.save(); //saves the state of canvas
-            draw(bat)
-            var batX = bat.x+30;
-            var batY = bat.y+90;
-            ctx.translate(batX, batY); //let's translate
-            ctx.rotate(Math.PI / 180 * (ang = ang-20)); //increment the angle and rotate the image 
-            var newBatX = -bat.width/100;
-            var newBatY = -bat.height;
-            var newBat = ctx.drawImage(img, newBatX, newBatY, bat.width*1.1, bat.height ); //draw the image ;)
+            // draw(bat)
+            ctx.translate(bat.x+30, bat.y+90); //let's translate
+            ctx.rotate(Math.PI / 180 * (ang = ang-15)); //increment the angle and rotate the image 
+            // var newBatX = -bat.width/100;
+            var newBat = ctx.drawImage(img, -bat.width/100, -bat.height, bat.width*1.1, bat.height ); //draw the image ;)
             ctx.restore(); //restore the state of canvas
-            console.log(ang);
-            console.log("newBatX: " + newBatX);
-            // this shit don't work
-            // bat.x = newBatX;
-            // bat.y = newBatY;
-            console.log("bat.x" + bat.x);
-            console.log("batX: " + batX)
-            console.log(newBat.dx)
-            function crashWith(){
-              if (newBatX < baseball.x + baseball.width  && newBatX + bat.width  > baseball.x &&
-                newBatY < baseball.y + baseball.height && newBatY + bat.height > baseball.y) {
-            return true}
-                }
-            if (crashWith()===true){clearInterval(handle); clearCanvas(); } else if (ang <= -340) {
-              console.log("TEST");
-              clearInterval(handle);
+            // console.log(ang);//testing ang on bat swing
+          
+            // if bat crashes with ball, generate new screen, if not, start pitch animation over
+            if (crashWith()===true)
+            {setTimeout(function(){clearInterval(handle)},50); //clears bat loop
+            window.cancelAnimationFrame(pitchAnimationCall);  //clears pitch loop
+            batCrack.play(); //play bat crack
+            setTimeout(function(){drawOverviewCanvas() }, 50); //draws homerun canvas
+            setTimeout(function(){homerunAnimation()} , 50) 
+            homerunTravelSound.play()
+    }
+             
+          //starts homerunBall Loop
+            else if (ang <= -355) {
+           swingMiss.play();clearInterval(handle);//plays bat miss sound, clears bat loop if crash was not detected
               // handle = 0;
             } 
         }, fps); // ends setInterval()
@@ -301,9 +370,11 @@ function clearCanvas(){
   
 
 document.body.onkeydown = function(e){
-    if(e.keyCode == 90) {
-      setInterval(swingBat(bat), 100);
-    }
+    if(e.keyCode == 90) {if (swingEnabled===true){
+      clearCanvas();
+      drawObjects()
+      setInterval(swingBat(bat), 500);
+    }}
 }
 
 
@@ -350,5 +421,9 @@ document.body.onkeydown = function(e){
       draw(bat);
       draw(batter)
     }
+    ctx.strokeText("Outs: ",30,50);
+ctx.strokeText("Homeruns: ",30,80);
+ctx.font = "30px Arial";
+ctx.fillStyle = "red";
 }
 

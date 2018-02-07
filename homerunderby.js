@@ -1,4 +1,24 @@
 //On Load of Window, start the game and show everyting
+var pitchMeter= {
+  x:600,
+  y:500,
+  width:50,
+  height:150,
+  vx:0,
+  vy:1,
+  colorBorder: "red",
+  borderWidth: 5,
+}
+
+var pitchMeterJuice= {
+  x:600,
+  y:500,
+  width:50,
+  height:20,
+  vx:0,
+  vy:2,
+}
+
 var baseball= {
   originX:480,
   originY:220,
@@ -7,10 +27,16 @@ var baseball= {
   source: "baseball.png",
   width:30,
   height:30,
-  vy:20,
-  vx:0
+  vy:15,
+  vx:0,
+  left: this.x,
+  right: this.x + this.width,
+  top: this.y,
+  bottom: this.y + (this.height)
+
   
 }
+
 
 var batterView = {
   x:0,
@@ -23,9 +49,9 @@ var batterView = {
   var fieldView={
   x:0,
   y:0,
-  source:"source",
-  height: 1200,
-  width: 1200
+  source:"baseballdiamondoverhead.jpg",
+  height: 600,
+  width: 1000
   }
 
   var pitcher = {
@@ -50,6 +76,10 @@ var batterView = {
     height:100,
     moveRight: function() { this.x = this.x + 50 },
     moveLeft:  function() { this.x = this.x - 50 },
+    left: this.x,
+    right: this.x + this.width,
+    top: this.y,
+    bottom: this.y + (this.height)
    
   }
 
@@ -65,15 +95,48 @@ var batterView = {
     
   }
 
+  var ang;
+
 window.onload = function() {
 
  
-
+  
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
-  var img = new Image()
   drawObjects();
   draw(bat)
+  var img = new Image()
+ 
+
+
+
+
+
+
+function createPitcherMeter(){ 
+  ctx.beginPath();
+  ctx.lineWidth="6";
+  ctx.strokeStyle="red";
+  ctx.rect(300,200,50,200); 
+  ctx.stroke();
+}
+
+
+
+function fillPitcherMeter(xx, yy, w, h){
+  ctx.beginPath();
+                createPitcherMeter()
+                if(h<pitchMeter.height)
+                h=h+pitchMeter.vy;
+                  ctx.fillStyle="#839402";
+                  ctx.fillRect(xx,yy,w,h);
+
+                  window.requestAnimationFrame(fillPitcherMeter)
+                  }
+                  
+  
+  
+
   
   
   // Viewable Variables
@@ -92,8 +155,8 @@ window.onload = function() {
     draw(baseball);
     draw(batter);
     draw(pitcher);
+    createPitcherMeter()
     // draw(bat);
-    // pitcherMeter(40,40);
     // musicOn();
   }
 
@@ -114,7 +177,7 @@ window.onload = function() {
   
   function generateRandomPitchVelocity(){
     randomNumber=Math.floor(Math.random()*3)
-  if (randomNumber===0){return 15} else if (randomNumber===1){return 5} else {return 15}
+  if (randomNumber===0){return 4} else if (randomNumber===1){return 4} else {return 4}
   }
 
   //This Function Will Generate RandomPitchPosition (Either Left Middle or Right on Plate),
@@ -122,7 +185,7 @@ window.onload = function() {
 
   function generateRandomPitchPosition(){
     randomNumber=Math.floor(Math.random()*3);
-    if (randomNumber===0){return 0} else if (randomNumber===1){return 3} else {return -2}
+    if (randomNumber===0) {return 0} else if (randomNumber===1){return 1} else {return -1}
   }
 
 //Draw Any Image Object with parameters below
@@ -146,46 +209,42 @@ window.onload = function() {
 
   // }
 
-  //Pitcher Meter to Help Hitter with Timing
-  // function pitcherMeter(x,y,width,height){
-  // ctx.beginPath();
-  //                 ctx.fillStyle="#ffffff";
-  //                 ctx.fillRect(0,0,900,500);
-                  
-  //                 ctx.fillStyle="#839402";
-  //                 ctx.fillRect(0,0,width,height);
 
-  //                 if (width < 300 && height < 300)
-  //                 {
-  //                     width += 9;
-  //                     height += 5;
-  //                 }
-  //                 else
-  //                 {
-  //                     width = 0;
-  //                     height = 0;
-  //                 }
-  //                 setTimeout(function() {pitcherMeter(width, height)}, 20);
-  // }
+
   var pitchPosition=generateRandomPitchPosition()
   var pitchVelocity=generateRandomPitchVelocity()
   function pitchBall() {
+
+    // pitchMeterGo()
+    if (baseball.y <=batterView.height){
+    drawObjects()
     ctx.save();
-    drawObjects();
+    // window.requestAnimationFrame(fillPitcherMeter)
+    ;
     draw(baseball);
     draw(bat)
+ 
     baseball.x = baseball.x + pitchPosition;
     baseball.y =baseball.y + pitchVelocity;
     window.requestAnimationFrame(pitchBall)
     
+    }
+    
+    else {baseball.x=baseball.originX, baseball.y=baseball.originY,clearCanvas;drawObjects;draw(baseball)
+     ;setTimeout(pitchBall,1200)}
   }
-  setTimeout(500,window.requestAnimationFrame(pitchBall))
+  setTimeout(pitchBall,1200);
+  // document.onkeydown = function(e) {
+  //   switch (e.keyCode) {
+  //     case 80:
+ 
+    //     break;
+    // }
   // document.body.onkeydown = function(e){
-  //   if(e.keyCode == 80){
+  //   if(e.keyCode == 80){ window.requestAnimationFrame(pitchBall)
   
-        //your code
-//     }
-// }
+  //   }
+
 function clearCanvas(){
   ctx.clearRect(0,0,1500,1500)
 }
@@ -197,31 +256,56 @@ function clearCanvas(){
     // var ctx = canvas.getContext('2d');
     var img = new Image();
 
-    var ang = 0; //angle
+    ang = 0; //angle
     var fps =  1000/25; //number of frames per sec
     img.onload = function () { //on image load do the following stuff
         // canvas.width = this.width << 1; //double the canvas width
         // canvas.height = this.height << 1; //double the canvas height
         var cache = this; //cache the local copy of image element for future reference
-        setInterval(function () {
+        var handle = setInterval(function () {
+          // ctx.clearRect(bat.x,bat.y, bat.width-100, bat.height-100);
             ctx.save(); //saves the state of canvas
-            // ctx.clearRect(bat.x,bat.y, bat.width, bat.height); //clear the canvas
-            ctx.translate(bat.x+30, bat.y+90); //let's translate
-            ctx.rotate(Math.PI / 180 * (ang = ang-15)); //increment the angle and rotate the image 
-            ctx.drawImage(img, -bat.width/100, -bat.height, bat.width*1.1, bat.height ); //draw the image ;)
+            draw(bat)
+            var batX = bat.x+30;
+            var batY = bat.y+90;
+            ctx.translate(batX, batY); //let's translate
+            ctx.rotate(Math.PI / 180 * (ang = ang-20)); //increment the angle and rotate the image 
+            var newBatX = -bat.width/100;
+            var newBatY = -bat.height;
+            var newBat = ctx.drawImage(img, newBatX, newBatY, bat.width*1.1, bat.height ); //draw the image ;)
             ctx.restore(); //restore the state of canvas
-        }, fps);
-    };
+            console.log(ang);
+            console.log("newBatX: " + newBatX);
+            // this shit don't work
+            // bat.x = newBatX;
+            // bat.y = newBatY;
+            console.log("bat.x" + bat.x);
+            console.log("batX: " + batX)
+            console.log(newBat.dx)
+            function crashWith(){
+              if (newBatX < baseball.x + baseball.width  && newBatX + bat.width  > baseball.x &&
+                newBatY < baseball.y + baseball.height && newBatY + bat.height > baseball.y) {
+            return true}
+                }
+            if (crashWith()===true){clearInterval(handle); clearCanvas(); } else if (ang <= -340) {
+              console.log("TEST");
+              clearInterval(handle);
+              // handle = 0;
+            } 
+        }, fps); // ends setInterval()
+    }; 
 
-    img.src = bat.source; //img
-
-}
+    img.src = bat.source; //img ; ends img.onload
+  } // end swingBat()
+ 
+  
 
 document.body.onkeydown = function(e){
-    if(e.keyCode == 90){setInterval(swingBat(bat), 100);
-        //your code
+    if(e.keyCode == 90) {
+      setInterval(swingBat(bat), 100);
     }
 }
+
 
 
   // Bat Rotating on Key Stroke
@@ -265,9 +349,6 @@ document.body.onkeydown = function(e){
       clearCanvas(); 
       draw(bat);
       draw(batter)
-      
     }
-
-
-
 }
+

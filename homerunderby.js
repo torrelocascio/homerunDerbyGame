@@ -179,6 +179,17 @@ function fillPitcherMeter(xx, yy, w, h){
   var outsLeft=10
   var homeruns=0
 
+  function trackOuts() {
+    // outsLeft=outsLeft-1
+    sessionStorage.setItem("outsLeft", outsLeft);
+    
+   return Number(sessionStorage.getItem("outsLeft")) = Number(sessionStorage.getItem("outsLeft")) -1
+    
+    
+  }
+  
+  
+
   function returnObjectsOrigin(){
     bat.x = bat.originX
     bat.y = bat.originY
@@ -270,7 +281,8 @@ function fillPitcherMeter(xx, yy, w, h){
   setTimeout(pitchBall,2000);
 
 function resetPitcher(){baseball.x=baseball.originX, baseball.y=baseball.originY,clearCanvas;drawObjects;draw(baseball)
-     ;setTimeout(pitchBall,2000);console.log(baseball.y)}
+     ;setTimeout(pitchBall,2000);trackOuts() ;
+     console.log(trackOuts())}
 
 var homerunAnimationCall
   function homerunAnimation(){
@@ -301,11 +313,8 @@ var homerunAnimationCall
     homerunAnimationCallDown = window.requestAnimationFrame(homerunAnimationDown);
     homerunAnimationCallDown
   }
-  else {window.cancelAnimationFrame(homerunAnimationCallDown);setTimeout(document.location.reload(),2000);  {
-     
-        
-    
-  } }
+  else {window.cancelAnimationFrame(homerunAnimationCallDown);
+    setTimeout(document.location.reload(),2000); }
 }
 
 //clear Canvas Function
